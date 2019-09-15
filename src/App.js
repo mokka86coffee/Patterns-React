@@ -3,19 +3,27 @@ import Switch from './Switch';
 import logo from './logo.svg';
 import './App.css';
 
+const ToggleContext = React.createContext();
+
 class Toggle extends React.Component {
-  static On = ({on, children}) => on ? children : null
-  static Off = ({on, children}) => on ? null : children
-  static Button = ({on, onClick, ...restProps}) => <Switch {...restProps} on={on} onClick={onClick} />
+  static On = ({children}) => <ToggleContext.Consumer>{({on}) => on ? children : null}</ToggleContext.Consumer>
+  static Off = ({children}) => <ToggleContext.Consumer>{({on}) => on ? null : children}</ToggleContext.Consumer>
+  static Button = ({children}) => <ToggleContext.Consumer>{({on, toggle}) => <Switch on={on} onClick={toggle}/>}</ToggleContext.Consumer>
+
   state = {on: false}
+ 
   toggle = () => this.setState(({on}) => ({on: !on}), () => this.props.onToggle(this.state.on))
 
   render() {
-    return React.Children.map(this.props.children, childElement =>
-      React.cloneElement(childElement, {
-        on: this.state.on,
-        onClick: this.toggle
-      })
+    return (
+      <ToggleContext.Provider
+        value={{
+          on: this.state.on,
+          toggle: this.toggle
+        }}
+      >
+        {this.props.children}
+      </ToggleContext.Provider>
     )
   }
 }
@@ -25,9 +33,13 @@ function Usage({
 }) {
   return (
     <Toggle onToggle={onToggle}>
-      <Toggle.Button />
-      <Toggle.On>The button is On</Toggle.On>
-      <Toggle.Off>The button is Off</Toggle.Off>
+      <div>
+        <Toggle.Button />
+      </div>
+      <div>
+        <Toggle.On>The button is On</Toggle.On>
+        <Toggle.Off>The button is Off</Toggle.Off>
+      </div>
     </Toggle>
   )
 
