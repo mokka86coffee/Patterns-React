@@ -4,18 +4,33 @@ import logo from './logo.svg';
 import './App.css';
 
 class Toggle extends React.Component {
+  static On = ({on, children}) => on ? children : null
+  static Off = ({on, children}) => on ? null : children
+  static Button = ({on, onClick, ...restProps}) => <Switch {...restProps} on={on} onClick={onClick} />
   state = {on: false}
   toggle = () => this.setState(({on}) => ({on: !on}), () => this.props.onToggle(this.state.on))
 
   render() {
-    return <Switch on={this.state.on} onClick={this.toggle} />;
+    return React.Children.map(this.props.children, childElement =>
+      React.cloneElement(childElement, {
+        on: this.state.on,
+        onClick: this.toggle
+      })
+    )
   }
 }
 
 function Usage({
   onToggle = (...args) => console.log('onToggle', ...args)
 }) {
-  return <Toggle onToggle={onToggle} />
+  return (
+    <Toggle onToggle={onToggle}>
+      <Toggle.Button />
+      <Toggle.On>The button is On</Toggle.On>
+      <Toggle.Off>The button is Off</Toggle.Off>
+    </Toggle>
+  )
+
 }
 
 class App extends Component {
